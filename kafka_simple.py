@@ -1,22 +1,26 @@
-from kafka import KafkaProducer
+from kafka import KafkaProducer, KafkaConsumer
 
-# Create an instance of the Kafka producer
+# Create Kafka producer
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
-# Send some messages
+# Send messages
 for i in range(10):
     message = f'message number {i}'
     print(f'Sending: {message}')
-    producer.send('my_topic', message)
+    message_bytes = message.encode('utf-8')
+    producer.send('my_topic', message_bytes)
 
-# Ensure all messages have been sent
+# Ensure all messages are sent
 producer.flush()
 
-from kafka import KafkaConsumer
-
-# Create an instance of the Kafka consumer
-consumer = KafkaConsumer('my_topic', bootstrap_servers='localhost:9092')
+# Create Kafka consumer
+consumer = KafkaConsumer('my_topic', bootstrap_servers='localhost:9092', auto_offset_reset='earliest')
 
 # Receive messages
-for message in consumer:
-    print(f'Received: {message.value}')
+try:
+    for i, message in enumerate(consumer):
+        print(f'Received: {message.value.decode("utf-8")}')
+        if i >= 9:
+            break
+finally:
+    consumer.close()
